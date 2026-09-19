@@ -23,29 +23,40 @@ class _DevotionsScreenState extends State<DevotionsScreen>
     'اللهم صلِّ على محمد وآل محمد',
     'لا إله إلا الله وحده لا شريك له',
     'لا حول ولا قوة إلا بالله العلي العظيم',
+    'سبحان الله',
+    'الحمد لله',
+    'الله أكبر',
     'سورة الفاتحة (قراءة وإهداء الثواب)',
   ];
 
-  final List<Map<String, String>> _deceasedDuas = [
+  final List<Map<String, String>> _duasAndZiyarat = [
     {
-      'title': 'دعاء المغفرة والرحمة',
+      'title': 'دعاء كميل (مستحب قراءته ليلة الجمعة)',
       'body':
-          'اللهم اغفر لها وارحمها، وعافها واعف عنها، وأكرم نزلها، ووسّع مدخلها، واغسلها بالماء والثلج والبرد، ونقّها من الذنوب والخطايا كما ينقّى الثوب الأبيض من الدنس.',
+          '''اللَّهُمَّ إِنِّي أَسْأَلُكَ بِرَحْمَتِكَ الَّتِي وَسِعَتْ كُلَّ شَيْءٍ، وَبِقُوَّتِكَ الَّتِي قَهَرْتَ بِهَا كُلَّ شَيْءٍ، وَخَضَعَ لَهَا كُلُّ شَيْءٍ، وَذَلَّ لَهَا كُلُّ شَيْءٍ، وَبِجَبَرُوتِكَ الَّتِي غَلَبْتَ بِهَا كُلَّ شَيْءٍ، وَبِعِزَّتِكَ الَّتِي لاَ يَقُومُ لَهَا شَيْءٌ، وَبِعَظَمَتِكَ الَّتِي مَلأَتْ كُلَّ شَيْءٍ، وَبِسُلْطَانِكَ الَّذِي عَلاَ كُلَّ شَيْءٍ، وَبِوَجْهِكَ الْبَاقِي بَعْدَ فَنَاءِ كُلِّ شَيْءٍ، وَبِأَسْمَائِكَ الَّتِي مَلأَتْ أَرْكَانَ كُلِّ شَيْءٍ، وَبِعِلْمِكَ الَّذِي أَحَاطَ بِكُلِّ شَيْءٍ، وَبِنُورِ وَجْهِكَ الَّذِي أَضَاءَ لَهُ كُلُّ شيء...
+
+يَا نُورُ يَا قُدُّوسُ، يَا أَوَّلَ الأَوَّلِينَ، وَيَا آخِرَ الآخِرِينَ. اللَّهُمَّ اغْفِرْ لِيَ الذُّنُوبَ الَّتِي تَهْتِكُ الْعِصَمَ، اللَّهُمَّ اغْفِرْ لِيَ الذُّنُوبَ الَّتِي تُنْزِلُ النِّقَمَ، اللَّهُمَّ اغْفِرْ لِيَ الذُّنُوبَ الَّتِي تُغَيِّرُ النِّعَمَ، اللَّهُمَّ اغْفِرْ لِيَ الذُّنُوبَ الَّتِي تَحْبِسُ الدُّعَاءَ، اللَّهُمَّ اغْفِرْ لِيَ الذُّنُوبَ الَّتِي تُنْزِلُ الْبَلاَءَ...
+
+فَهَبْنِي يَا إِلَهِي وَسَيِّدِي وَمَوْلاَيَ وَرَبِّي، صَبَرْتُ عَلَى عَذَابِكَ فَكَيْفَ أَصْبِرُ عَلَى فِرَاقِكَ، وَهَبْنِي صَبَرْتُ عَلَى حَرِّ نَارِكَ فَكَيْفَ أَصْبِرُ عَنِ النَّظَرِ إِلَى كَرَامَتِكَ، أَمْ كَيْفَ أَسْكُنُ فِي النَّارِ وَرَجَائِي عَفْوُكَ...
+
+يَا رَبِّ يَا رَبِّ يَا رَبِّ، أَسْأَلُكَ بِحَقِّكَ وَقُدْسِكَ وَأَعْظَمِ صِفَاتِكَ وَأَسْمَائِكَ، أَنْ تَجْعَلَ أَوْقَاتِي مِنَ اللَّيْلِ وَالنَّهَارِ بِذِكْرِكَ مَعْمُورَةً، وَبِخِدْمَتِكَ مَوْصُولَةً، وَأَعْمَالِي عِنْدَكَ مَقْبُولَةً...
+
+(يُستحب قراءته ليلة الجمعة وإهداء ثوابه لروح المرحومة تحرير جابر أم علي وأموات المؤمنين جميعاً).''',
+    },
+    {
+      'title': 'دعاء للمرحومة تحرير جابر (أم علي)',
+      'body':
+          'اللهم اغفر لأمتك تحرير جابر، وارحمها وعافها واعفُ عنها، وأكرم نزلها ووسّع مدخلها، واغسلها بالماء والثلج والبرد، ونقّها من الذنوب والخطايا كما ينقّى الثوب الأبيض من الدنس، وجازها بالإحسان إحساناً وبالسيئات غفراناً.',
     },
     {
       'title': 'دعاء النور والفسحة في القبر',
       'body':
-          'اللهم آنس وحشتها، وارحم غربتها، واجعل قبرها روضة من رياض الجنة ولا تجعله حفرة من حفر النار، وافسح لها في قبرها مدّ بصرها.',
+          'اللهم آنس وحشتها، وارحم غربتها، واجعل قبرها روضة من رياض الجنة ولا تجعله حفرة من حفر النار، وافسح لها في قبرها مدّ بصرها، وأنزل على قبرها الضياء والنور والفسحة والسرور.',
     },
     {
-      'title': 'دعاء الدرجات العُلا',
+      'title': 'إهداء ثواب الطاعات والأذكار',
       'body':
-          'اللهم إن كانت محسنة فزد في إحسانها، وإن كانت مسيئة فتجاوز عن سيئاتها، وأسكنها الفردوس الأعلى مع النبيين والصديقين والشهداء والصالحين.',
-    },
-    {
-      'title': 'إهداء ثواب العمل والصدقة',
-      'body':
-          'اللهم إني أحتسب أجر هذا العمل وهذا الذكر صدقة جارية لها، فاللهم اجعل ثوابه نوراً ينزل على قبرها، وتقبله بقبولك الحسن يا أرحم الراحمين.',
+          'اللهم إني أحتسب ثواب وأجر هذه الأذكار والدعوات صدقة جارية ونوراً واصلاً لروح المرحومة تحرير جابر (أم علي)، فتقبله بقبولك الحسن يا رب العالمين.',
     },
   ];
 
@@ -103,9 +114,12 @@ class _DevotionsScreenState extends State<DevotionsScreen>
             tabs: const [
               Tab(
                 icon: Icon(Icons.touch_app_outlined),
-                text: 'المسبحة الإلكترونية',
+                text: 'المسبحة والأذكار',
               ),
-              Tab(icon: Icon(Icons.menu_book_outlined), text: 'أدعية للمتوفى'),
+              Tab(
+                icon: Icon(Icons.menu_book_outlined),
+                text: 'الأدعية والزيارات',
+              ),
             ],
           ),
         ),
@@ -123,69 +137,6 @@ class _DevotionsScreenState extends State<DevotionsScreen>
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-        Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 1,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14.0,
-              vertical: 4.0,
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                isExpanded: true,
-                value: _selectedDhikr,
-                items: _presetAdhkar.map((dhikr) {
-                  return DropdownMenuItem(
-                    value: dhikr,
-                    child: Text(
-                      dhikr,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() {
-                      _selectedDhikr = val;
-                      _counter = 0;
-                    });
-                  }
-                },
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('الدورة: ', style: TextStyle(color: Colors.grey)),
-            ChoiceChip(
-              label: const Text('33'),
-              selected: _target == 33,
-              onSelected: (val) => setState(() {
-                _target = 33;
-                _counter = 0;
-              }),
-            ),
-            const SizedBox(width: 8),
-            ChoiceChip(
-              label: const Text('100'),
-              selected: _target == 100,
-              onSelected: (val) => setState(() {
-                _target = 100;
-                _counter = 0;
-              }),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
         Center(
           child: GestureDetector(
             onTap: _incrementTasbeeh,
@@ -193,24 +144,24 @@ class _DevotionsScreenState extends State<DevotionsScreen>
               alignment: Alignment.center,
               children: [
                 SizedBox(
-                  width: 220,
-                  height: 220,
+                  width: 200,
+                  height: 200,
                   child: CircularProgressIndicator(
                     value: progress,
-                    strokeWidth: 10,
+                    strokeWidth: 9,
                     backgroundColor: Colors.grey.shade200,
                     color: const Color(0xFF0F766E),
                   ),
                 ),
                 Container(
-                  width: 190,
-                  height: 190,
+                  width: 175,
+                  height: 175,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
+                        color: Colors.black.withValues(alpha: 0.06),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       ),
@@ -222,7 +173,7 @@ class _DevotionsScreenState extends State<DevotionsScreen>
                       Text(
                         '$_counter',
                         style: const TextStyle(
-                          fontSize: 48,
+                          fontSize: 44,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF0F766E),
                         ),
@@ -230,7 +181,7 @@ class _DevotionsScreenState extends State<DevotionsScreen>
                       Text(
                         'من $_target',
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           color: Colors.grey,
                         ),
                       ),
@@ -238,7 +189,7 @@ class _DevotionsScreenState extends State<DevotionsScreen>
                       const Text(
                         'المس للتسبيح',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11,
                           color: Color(0xFF94A3B8),
                         ),
                       ),
@@ -249,32 +200,117 @@ class _DevotionsScreenState extends State<DevotionsScreen>
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F766E).withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            'الذكر الحالي: $_selectedDhikr',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F766E),
+              fontSize: 13,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
+            Row(
               children: [
                 const Text(
-                  'الدورات المكتملة',
-                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                  'الدورة: ',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
-                Text(
-                  '$_totalCompletedCycles',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                ChoiceChip(
+                  label: const Text('33'),
+                  selected: _target == 33,
+                  onSelected: (val) => setState(() {
+                    _target = 33;
+                    _counter = 0;
+                  }),
+                ),
+                const SizedBox(width: 6),
+                ChoiceChip(
+                  label: const Text('100'),
+                  selected: _target == 100,
+                  onSelected: (val) => setState(() {
+                    _target = 100;
+                    _counter = 0;
+                  }),
                 ),
               ],
             ),
-            IconButton(
-              onPressed: _resetCounter,
-              icon: const Icon(Icons.refresh, color: Colors.grey),
-              tooltip: 'إعادة تعيين العداد',
+            Row(
+              children: [
+                Text(
+                  'المكتمل: $_totalCompletedCycles',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                IconButton(
+                  onPressed: _resetCounter,
+                  icon: const Icon(Icons.refresh, color: Colors.grey, size: 20),
+                  tooltip: 'تصفير العداد',
+                ),
+              ],
             ),
           ],
         ),
+        const Divider(height: 24),
+        const Text(
+          'اختر تسبيحة أو ذكراً للبدء به:',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+        const SizedBox(height: 8),
+        ..._presetAdhkar.map((dhikr) {
+          final isSelected = dhikr == _selectedDhikr;
+          return Card(
+            elevation: isSelected ? 2 : 0.5,
+            color: isSelected ? Colors.teal.shade50 : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: BorderSide(
+                color: isSelected
+                    ? const Color(0xFF0F766E)
+                    : Colors.grey.shade200,
+                width: isSelected ? 1.5 : 1,
+              ),
+            ),
+            child: ListTile(
+              dense: true,
+              leading: Icon(
+                isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
+                color: isSelected ? const Color(0xFF0F766E) : Colors.grey,
+              ),
+              title: Text(
+                dhikr,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  color: isSelected ? const Color(0xFF0F766E) : Colors.black87,
+                ),
+              ),
+              onTap: () {
+                setState(() {
+                  _selectedDhikr = dhikr;
+                  _counter = 0;
+                });
+                HapticFeedback.selectionClick();
+              },
+            ),
+          );
+        }),
       ],
     );
   }
@@ -282,9 +318,9 @@ class _DevotionsScreenState extends State<DevotionsScreen>
   Widget _buildDuasTab() {
     return ListView.builder(
       padding: const EdgeInsets.all(16.0),
-      itemCount: _deceasedDuas.length,
+      itemCount: _duasAndZiyarat.length,
       itemBuilder: (context, index) {
-        final item = _deceasedDuas[index];
+        final item = _duasAndZiyarat[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
@@ -299,17 +335,19 @@ class _DevotionsScreenState extends State<DevotionsScreen>
                 Row(
                   children: [
                     const Icon(
-                      Icons.favorite_outline,
+                      Icons.menu_book,
                       size: 18,
                       color: Color(0xFF0F766E),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      item['title']!,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                    Expanded(
+                      child: Text(
+                        item['title']!,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E293B),
+                        ),
                       ),
                     ),
                   ],
@@ -319,7 +357,7 @@ class _DevotionsScreenState extends State<DevotionsScreen>
                   item['body']!,
                   style: const TextStyle(
                     fontSize: 14,
-                    height: 1.6,
+                    height: 1.7,
                     color: Color(0xFF334155),
                   ),
                 ),

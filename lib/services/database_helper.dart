@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -12,7 +12,7 @@ class DatabaseHelper {
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDB('ibadah_tracker.db');
+    _database = await _initDB('qadaa.db');
     return _database!;
   }
 
@@ -26,167 +26,202 @@ class DatabaseHelper {
   Future<void> _createDB(Database db, int version) async {
     await db.execute('''
       CREATE TABLE obligations (
-        id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT NOT NULL,
-        total_required INTEGER NOT NULL DEFAULT 0,
-        completed_fajr INTEGER NOT NULL DEFAULT 0,
-        completed_dhuhr INTEGER NOT NULL DEFAULT 0,
-        completed_asr INTEGER NOT NULL DEFAULT 0,
-        completed_maghrib INTEGER NOT NULL DEFAULT 0,
-        completed_isha INTEGER NOT NULL DEFAULT 0,
-        completed_fasting INTEGER NOT NULL DEFAULT 0
+        total_required INTEGER NOT NULL,
+        completed_fajr INTEGER DEFAULT 0,
+        completed_dhuhr INTEGER DEFAULT 0,
+        completed_asr INTEGER DEFAULT 0,
+        completed_maghrib INTEGER DEFAULT 0,
+        completed_isha INTEGER DEFAULT 0,
+        completed_fasting INTEGER DEFAULT 0
       )
     ''');
 
     await db.execute('''
-      CREATE TABLE daily_logs (
+      CREATE TABLE logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        action_type TEXT NOT NULL,
-        count INTEGER NOT NULL DEFAULT 1,
-        timestamp TEXT NOT NULL,
-        note TEXT
+        type TEXT NOT NULL,
+        action TEXT NOT NULL,
+        timestamp TEXT NOT NULL
       )
     ''');
 
-    await db.execute('''
-      CREATE TABLE devotions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        target_count INTEGER DEFAULT 100,
-        current_count INTEGER DEFAULT 0,
-        is_dedicated INTEGER DEFAULT 1
-      )
-    ''');
+    await db.insert('obligations', {
+      'type': 'PRAYER',
+      'total_required': 365,
+      'completed_fajr': 0,
+      'completed_dhuhr': 0,
+      'completed_asr': 0,
+      'completed_maghrib': 0,
+      'completed_isha': 0,
+      'completed_fasting': 0,
+    });
 
-    await db.rawInsert('''
-      INSERT INTO obligations (id, type, total_required)
-      VALUES (1, 'PRAYER', 0), (2, 'FASTING', 0)
-    ''');
+    await db.insert('obligations', {
+      'type': 'FASTING',
+      'total_required': 30,
+      'completed_fajr': 0,
+      'completed_dhuhr': 0,
+      'completed_asr': 0,
+      'completed_maghrib': 0,
+      'completed_isha': 0,
+      'completed_fasting': 0,
+    });
   }
 
   Future<Map<String, dynamic>?> getObligation(String type) async {
     final db = await instance.database;
-    final results = await db.query(
+    final res = await db.query(
       'obligations',
       where: 'type = ?',
       whereArgs: [type],
-      limit: 1,
     );
-    return results.isNotEmpty ? results.first : null;
+    if (res.isNotEmpty) return res.first;
+    return null;
   }
 
-  Future<void> setTotalDays(String type, int totalDays) async {
+  Future<void> logPrayer(String column, String actionName) async {
     final db = await instance.database;
-    await db.update(
-      'obligations',
-      {'total_required': totalDays},
-      where: 'type = ?',
-      whereArgs: [type],
+    await db.rawUpdate(
+      'UPDATE obligations SET $column = $column + 1 WHERE type = ?',
+      ['PRAYER'],
     );
+    await db.insert('logs', {
+      'type': 'PRAYER',
+      'action': actionName,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
   }
 
-  Future<void> logPrayer(String prayerColumn, String actionName) async {
+  Future<void> decrementPrayer(String column, String actionName) async {
     final db = await instance.database;
-    await db.transaction((txn) async {
-      await txn.rawUpdate(
-        'UPDATE obligations SET $prayerColumn = $prayerColumn + 1 WHERE id = 1',
+    final current = await getObligation('PRAYER');
+    if (current != null && (current[column] ?? 0) > 0) {
+      await db.rawUpdate(
+        'UPDATE obligations SET $column = $column - 1 WHERE type = ?',
+        ['PRAYER'],
       );
-      await txn.insert('daily_logs', {
-        'action_type': actionName,
-        'count': 1,
+      await db.insert('logs', {
+        'type': 'PRAYER',
+        'action': 'DEC_$actionName',
         'timestamp': DateTime.now().toIso8601String(),
       });
-    });
+    }
   }
 
   Future<void> logFullDayPrayer() async {
     final db = await instance.database;
-    await db.transaction((txn) async {
-      await txn.rawUpdate('''
-        UPDATE obligations 
-        SET completed_fajr = completed_fajr + 1,
-            completed_dhuhr = completed_dhuhr + 1,
-            completed_asr = completed_asr + 1,
-            completed_maghrib = completed_maghrib + 1,
-            completed_isha = completed_isha + 1
-        WHERE id = 1
-      ''');
-      await txn.insert('daily_logs', {
-        'action_type': 'FULL_DAY_PRAYER',
-        'count': 1,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
+    await db.rawUpdate(
+      '''
+      UPDATE obligations 
+      SET completed_fajr = completed_fajr + 1,
+          completed_dhuhr = completed_dhuhr + 1,
+          completed_asr = completed_asr + 1,
+          completed_maghrib = completed_maghrib + 1,
+          completed_isha = completed_isha + 1
+      WHERE type = ?
+    ''',
+      ['PRAYER'],
+    );
+    await db.insert('logs', {
+      'type': 'PRAYER',
+      'action': 'FULL_DAY',
+      'timestamp': DateTime.now().toIso8601String(),
     });
   }
 
   Future<void> logFastingDay() async {
     final db = await instance.database;
-    await db.transaction((txn) async {
-      await txn.rawUpdate(
-        'UPDATE obligations SET completed_fasting = completed_fasting + 1 WHERE id = 2',
-      );
-      await txn.insert('daily_logs', {
-        'action_type': 'FASTING',
-        'count': 1,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
+    await db.rawUpdate(
+      'UPDATE obligations SET completed_fasting = completed_fasting + 1 WHERE type = ?',
+      ['FASTING'],
+    );
+    await db.insert('logs', {
+      'type': 'FASTING',
+      'action': 'FASTING_DAY',
+      'timestamp': DateTime.now().toIso8601String(),
     });
   }
 
-  Future<String> exportDatabaseToJson() async {
+  Future<void> decrementFastingDay() async {
     final db = await instance.database;
-    final obligations = await db.query('obligations');
-    final dailyLogs = await db.query('daily_logs');
-    final devotions = await db.query('devotions');
+    final current = await getObligation('FASTING');
+    if (current != null && (current['completed_fasting'] ?? 0) > 0) {
+      await db.rawUpdate(
+        'UPDATE obligations SET completed_fasting = completed_fasting - 1 WHERE type = ?',
+        ['FASTING'],
+      );
+      await db.insert('logs', {
+        'type': 'FASTING',
+        'action': 'DEC_FASTING_DAY',
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+    }
+  }
 
-    final backupData = {
-      'version': 1,
-      'export_date': DateTime.now().toIso8601String(),
-      'obligations': obligations,
-      'daily_logs': dailyLogs,
-      'devotions': devotions,
-    };
+  Future<void> updateTotalRequired(String type, int newTotal) async {
+    final db = await instance.database;
+    await db.update(
+      'obligations',
+      {'total_required': newTotal},
+      where: 'type = ?',
+      whereArgs: [type],
+    );
+  }
 
-    return const JsonEncoder.withIndent('  ').convert(backupData);
+  Future<void> setTotalDays(String type, int totalDays) async {
+    await updateTotalRequired(type, totalDays);
   }
 
   Future<File> createBackupFile() async {
-    final jsonString = await exportDatabaseToJson();
+    final db = await instance.database;
+    final obligations = await db.query('obligations');
+    final logs = await db.query('logs');
+
+    final backupData = {
+      'version': 1,
+      'exported_at': DateTime.now().toIso8601String(),
+      'obligations': obligations,
+      'logs': logs,
+    };
+
     final tempDir = await getTemporaryDirectory();
-    final fileName =
-        'ibadah_backup_${DateTime.now().millisecondsSinceEpoch}.json';
-    final file = File('${tempDir.path}/$fileName');
-    return await file.writeAsString(jsonString);
+    final file = File(
+      '${tempDir.path}/qadaa_backup_${DateTime.now().millisecondsSinceEpoch}.json',
+    );
+    return await file.writeAsString(jsonEncode(backupData));
   }
 
-  Future<bool> restoreDatabaseFromJson(String jsonContent) async {
+  Future<bool> restoreDatabaseFromJson(String jsonString) async {
     try {
-      final Map<String, dynamic> data = jsonDecode(jsonContent);
+      final data = jsonDecode(jsonString) as Map<String, dynamic>;
       final db = await instance.database;
+
+      final obligations = data['obligations'] as List<dynamic>?;
+      final logs = data['logs'] as List<dynamic>?;
+
+      if (obligations == null) return false;
 
       await db.transaction((txn) async {
         await txn.delete('obligations');
-        await txn.delete('daily_logs');
-        await txn.delete('devotions');
+        for (final row in obligations) {
+          await txn.insert(
+            'obligations',
+            Map<String, dynamic>.from(row as Map),
+          );
+        }
 
-        if (data['obligations'] != null) {
-          for (var row in data['obligations']) {
-            await txn.insert('obligations', Map<String, dynamic>.from(row));
-          }
-        }
-        if (data['daily_logs'] != null) {
-          for (var row in data['daily_logs']) {
-            await txn.insert('daily_logs', Map<String, dynamic>.from(row));
-          }
-        }
-        if (data['devotions'] != null) {
-          for (var row in data['devotions']) {
-            await txn.insert('devotions', Map<String, dynamic>.from(row));
+        if (logs != null) {
+          await txn.delete('logs');
+          for (final row in logs) {
+            await txn.insert('logs', Map<String, dynamic>.from(row as Map));
           }
         }
       });
+
       return true;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
