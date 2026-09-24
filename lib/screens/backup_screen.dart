@@ -50,6 +50,7 @@ class _BackupScreenState extends State<BackupScreen> {
     );
 
     if (result != null && result.files.single.path != null) {
+      if (!mounted) return;
       final confirm = await showDialog<bool>(
         context: context,
         builder: (ctx) => Directionality(

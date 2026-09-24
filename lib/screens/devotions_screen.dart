@@ -12,10 +12,10 @@ class _DevotionsScreenState extends State<DevotionsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  int _counter = 0;
   int _target = 33;
-  int _totalCompletedCycles = 0;
-  String _selectedDhikr = 'سبحان الله وبحمده، سبحان الله العظيم';
+  double _duaFontSize = 14.0;
+  final Map<String, int> _adhkarCounts = {};
+  final Map<String, int> _adhkarCompletedCycles = {};
 
   final List<String> _presetAdhkar = [
     'سبحان الله وبحمده، سبحان الله العظيم',
@@ -41,22 +41,22 @@ class _DevotionsScreenState extends State<DevotionsScreen>
 
 يَا رَبِّ يَا رَبِّ يَا رَبِّ، أَسْأَلُكَ بِحَقِّكَ وَقُدْسِكَ وَأَعْظَمِ صِفَاتِكَ وَأَسْمَائِكَ، أَنْ تَجْعَلَ أَوْقَاتِي مِنَ اللَّيْلِ وَالنَّهَارِ بِذِكْرِكَ مَعْمُورَةً، وَبِخِدْمَتِكَ مَوْصُولَةً، وَأَعْمَالِي عِنْدَكَ مَقْبُولَةً...
 
-(يُستحب قراءته ليلة الجمعة وإهداء ثوابه لروح المرحومة تحرير جابر أم علي وأموات المؤمنين جميعاً).''',
+(يُستحب قراءته ليلة الجمعة وإهداء ثوابه لروح والدي وروح المرحومة زوجتي تحرير جابر أم علي وأموات المؤمنين جميعاً).''',
     },
     {
-      'title': 'دعاء للمرحومة تحرير جابر (أم علي)',
+      'title': 'دعاء لروح والدي وللمرحومة زوجتي تحرير جابر (أم علي)',
       'body':
-          'اللهم اغفر لأمتك تحرير جابر، وارحمها وعافها واعفُ عنها، وأكرم نزلها ووسّع مدخلها، واغسلها بالماء والثلج والبرد، ونقّها من الذنوب والخطايا كما ينقّى الثوب الأبيض من الدنس، وجازها بالإحسان إحساناً وبالسيئات غفراناً.',
+          'اللهم اغفر لوالدي ولزوجتي تحرير جابر، وارحمهما وعافهما واعفُ عنهما، وأكرم نزلهما ووسّع مدخلهما، واغسلهما بالماء والثلج والبرد، ونقّهما من الذنوب والخطايا كما ينقّى الثوب الأبيض من الدنس، وجازهما بالإحسان إحساناً وبالسيئات غفراناً.',
     },
     {
       'title': 'دعاء النور والفسحة في القبر',
       'body':
-          'اللهم آنس وحشتها، وارحم غربتها، واجعل قبرها روضة من رياض الجنة ولا تجعله حفرة من حفر النار، وافسح لها في قبرها مدّ بصرها، وأنزل على قبرها الضياء والنور والفسحة والسرور.',
+          'اللهم آنس وحشتهما، وارحم غربتهما، واجعل قبرهما روضة من رياض الجنة ولا تجعله حفرة من حفر النار، وافسح لهما في قبرهما مدّ بصرهما، وأنزل على قبرهما الضياء والنور والفسحة والسرور.',
     },
     {
       'title': 'إهداء ثواب الطاعات والأذكار',
       'body':
-          'اللهم إني أحتسب ثواب وأجر هذه الأذكار والدعوات صدقة جارية ونوراً واصلاً لروح المرحومة تحرير جابر (أم علي)، فتقبله بقبولك الحسن يا رب العالمين.',
+          'اللهم إني أحتسب ثواب وأجر هذه الأذكار والدعوات صدقة جارية ونوراً واصلاً لروح والدي وروح المرحومة زوجتي تحرير جابر (أم علي)، فتقبله بقبولك الحسن يا رب العالمين.',
     },
   ];
 
@@ -72,23 +72,58 @@ class _DevotionsScreenState extends State<DevotionsScreen>
     super.dispose();
   }
 
-  void _incrementTasbeeh() {
+  void _incrementDhikr(String dhikr) {
     setState(() {
-      _counter++;
-      if (_counter >= _target) {
-        _counter = 0;
-        _totalCompletedCycles++;
+      final current = _adhkarCounts[dhikr] ?? 0;
+      if (current + 1 >= _target) {
+        _adhkarCounts[dhikr] = 0;
+        _adhkarCompletedCycles[dhikr] = (_adhkarCompletedCycles[dhikr] ?? 0) + 1;
         HapticFeedback.heavyImpact();
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('🎉 أتممت دورة ($dhikr) بنجاح!'),
+            backgroundColor: const Color(0xFF0F766E),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       } else {
+        _adhkarCounts[dhikr] = current + 1;
         HapticFeedback.lightImpact();
       }
     });
   }
 
-  void _resetCounter() {
+  void _decrementDhikr(String dhikr) {
     setState(() {
-      _counter = 0;
+      final current = _adhkarCounts[dhikr] ?? 0;
+      if (current > 0) {
+        _adhkarCounts[dhikr] = current - 1;
+      }
     });
+  }
+
+  void _resetDhikr(String dhikr) {
+    setState(() {
+      _adhkarCounts[dhikr] = 0;
+      _adhkarCompletedCycles[dhikr] = 0;
+    });
+  }
+
+  void _resetAllAdhkar() {
+    setState(() {
+      _adhkarCounts.clear();
+      _adhkarCompletedCycles.clear();
+    });
+  }
+
+  int get _totalTasbeehCount {
+    int total = 0;
+    for (final dhikr in _presetAdhkar) {
+      total += (_adhkarCounts[dhikr] ?? 0) + ((_adhkarCompletedCycles[dhikr] ?? 0) * _target);
+    }
+    return total;
   }
 
   @override
@@ -132,182 +167,298 @@ class _DevotionsScreenState extends State<DevotionsScreen>
   }
 
   Widget _buildTasbeehTab() {
-    final progress = (_counter / _target).clamp(0.0, 1.0);
-
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-        Center(
-          child: GestureDetector(
-            onTap: _incrementTasbeeh,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 9,
-                    backgroundColor: Colors.grey.shade200,
-                    color: const Color(0xFF0F766E),
-                  ),
-                ),
-                Container(
-                  width: 175,
-                  height: 175,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+        // Summary Card
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF0F766E),
+                Color(0xFF0D9488),
+              ],
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F766E).withValues(alpha: 0.25),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '$_counter',
-                        style: const TextStyle(
-                          fontSize: 44,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F766E),
-                        ),
-                      ),
-                      Text(
-                        'من $_target',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
+                      const Text(
+                        'إجمالي تسبيحات الجلسة',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'المس للتسبيح',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF94A3B8),
+                      Text(
+                        '$_totalTasbeehCount',
+                        style: const TextStyle(
+                          color: Colors.amberAccent,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0F766E).withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            'الذكر الحالي: $_selectedDhikr',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0F766E),
-              fontSize: 13,
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                const Text(
-                  'الدورة: ',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
-                ChoiceChip(
-                  label: const Text('33'),
-                  selected: _target == 33,
-                  onSelected: (val) => setState(() {
-                    _target = 33;
-                    _counter = 0;
-                  }),
-                ),
-                const SizedBox(width: 6),
-                ChoiceChip(
-                  label: const Text('100'),
-                  selected: _target == 100,
-                  onSelected: (val) => setState(() {
-                    _target = 100;
-                    _counter = 0;
-                  }),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Text(
-                  'المكتمل: $_totalCompletedCycles',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                  ElevatedButton.icon(
+                    onPressed: _resetAllAdhkar,
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('تصفير الكـل', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
-                ),
-                IconButton(
-                  onPressed: _resetCounter,
-                  icon: const Icon(Icons.refresh, color: Colors.grey, size: 20),
-                  tooltip: 'تصفير العداد',
-                ),
-              ],
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Divider(color: Colors.white24, height: 1),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'الهدف لكل دؤرة:',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      ChoiceChip(
+                        label: const Text('33 مرة'),
+                        selected: _target == 33,
+                        selectedColor: Colors.amberAccent,
+                        backgroundColor: Colors.white24,
+                        labelStyle: TextStyle(
+                          color: _target == 33 ? const Color(0xFF0F766E) : Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                        onSelected: (val) => setState(() {
+                          _target = 33;
+                        }),
+                      ),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: const Text('100 مرة'),
+                        selected: _target == 100,
+                        selectedColor: Colors.amberAccent,
+                        backgroundColor: Colors.white24,
+                        labelStyle: TextStyle(
+                          color: _target == 100 ? const Color(0xFF0F766E) : Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                        onSelected: (val) => setState(() {
+                          _target = 100;
+                        }),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
+        const Row(
+          children: [
+            Icon(Icons.touch_app_rounded, color: Color(0xFF0F766E), size: 20),
+            SizedBox(width: 8),
+            Text(
+              'انقر على العبارة مباشرة للتسبيح:',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
             ),
           ],
         ),
-        const Divider(height: 24),
-        const Text(
-          'اختر تسبيحة أو ذكراً للبدء به:',
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
-          ),
-        ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
+
         ..._presetAdhkar.map((dhikr) {
-          final isSelected = dhikr == _selectedDhikr;
+          final count = _adhkarCounts[dhikr] ?? 0;
+          final cycles = _adhkarCompletedCycles[dhikr] ?? 0;
+          final progress = (count / _target).clamp(0.0, 1.0);
+
           return Card(
-            elevation: isSelected ? 2 : 0.5,
-            color: isSelected ? Colors.teal.shade50 : Colors.white,
+            margin: const EdgeInsets.only(bottom: 12),
+            elevation: count > 0 ? 2 : 0.5,
+            color: count > 0 ? const Color(0xFFF0FDFA) : Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: isSelected
-                    ? const Color(0xFF0F766E)
-                    : Colors.grey.shade200,
-                width: isSelected ? 1.5 : 1,
+                color: count > 0 ? const Color(0xFF0F766E) : Colors.grey.shade200,
+                width: count > 0 ? 1.5 : 1,
               ),
             ),
-            child: ListTile(
-              dense: true,
-              leading: Icon(
-                isSelected ? Icons.check_circle : Icons.radio_button_unchecked,
-                color: isSelected ? const Color(0xFF0F766E) : Colors.grey,
-              ),
-              title: Text(
-                dhikr,
-                style: TextStyle(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? const Color(0xFF0F766E) : Colors.black87,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => _incrementDhikr(dhikr),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            dhikr,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: count > 0 ? const Color(0xFF0F766E) : const Color(0xFF1E293B),
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                        if (cycles > 0) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFF59E0B)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.star, size: 12, color: Color(0xFFD97706)),
+                                const SizedBox(width: 3),
+                                Text(
+                                  'دورة $cycles',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFB45309),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        // Progress bar
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              minHeight: 10,
+                              backgroundColor: Colors.grey.shade200,
+                              color: const Color(0xFF0F766E),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Counter Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: count > 0 ? const Color(0xFF0F766E) : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '$count / $_target',
+                            style: TextStyle(
+                              color: count > 0 ? Colors.white : const Color(0xFF64748B),
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.touch_app, size: 14, color: Color(0xFF0F766E)),
+                            SizedBox(width: 4),
+                            Text(
+                              'اضغط للعد المباشر',
+                              style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            if (count > 0) ...[
+                              IconButton(
+                                onPressed: () => _decrementDhikr(dhikr),
+                                icon: const Icon(Icons.remove_circle_outline, size: 20),
+                                color: Colors.grey.shade600,
+                                tooltip: 'إنقاص 1',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                              ),
+                              IconButton(
+                                onPressed: () => _resetDhikr(dhikr),
+                                icon: const Icon(Icons.refresh, size: 18),
+                                color: Colors.grey.shade500,
+                                tooltip: 'تصفير',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0F766E).withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: IconButton(
+                                onPressed: () => _incrementDhikr(dhikr),
+                                icon: const Icon(Icons.add, size: 20),
+                                color: const Color(0xFF0F766E),
+                                tooltip: 'تسبيح +1',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              onTap: () {
-                setState(() {
-                  _selectedDhikr = dhikr;
-                  _counter = 0;
-                });
-                HapticFeedback.selectionClick();
-              },
             ),
           );
         }),
@@ -315,57 +466,114 @@ class _DevotionsScreenState extends State<DevotionsScreen>
     );
   }
 
+
   Widget _buildDuasTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: _duasAndZiyarat.length,
-      itemBuilder: (context, index) {
-        final item = _duasAndZiyarat[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          elevation: 1,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.menu_book,
-                      size: 18,
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          color: Colors.white,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.format_size, size: 20, color: Color(0xFF0F766E)),
+                  SizedBox(width: 6),
+                  Text(
+                    'حجم خط القراءة:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle_outline, size: 20),
+                    tooltip: 'تصغير الخط',
+                    onPressed: _duaFontSize > 12.0
+                        ? () => setState(() => _duaFontSize -= 1.0)
+                        : null,
+                  ),
+                  Text(
+                    '${_duaFontSize.toInt()} pt',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                       color: Color(0xFF0F766E),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        item['title']!,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline, size: 20),
+                    tooltip: 'تكبير الخط',
+                    onPressed: _duaFontSize < 24.0
+                        ? () => setState(() => _duaFontSize += 1.0)
+                        : null,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: _duasAndZiyarat.length,
+            itemBuilder: (context, index) {
+              final item = _duasAndZiyarat[index];
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.menu_book,
+                            size: 18,
+                            color: Color(0xFF0F766E),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              item['title']!,
+                              style: TextStyle(
+                                fontSize: _duaFontSize + 2.0,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1E293B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        item['body']!,
+                        style: TextStyle(
+                          fontSize: _duaFontSize,
+                          height: 1.8,
+                          color: const Color(0xFF334155),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  item['body']!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 1.7,
-                    color: Color(0xFF334155),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              );
+            },
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

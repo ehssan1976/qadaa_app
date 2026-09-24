@@ -15,10 +15,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _fastingDaysController = TextEditingController(text: '30');
 
   @override
-  void dispose() {
-    _prayerYearsController.dispose();
-    _fastingDaysController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    if (widget.isEditing) {
+      _loadCurrentValues();
+    }
+  }
+
+  Future<void> _loadCurrentValues() async {
+    final prayer = await DatabaseHelper.instance.getObligation('PRAYER');
+    final fasting = await DatabaseHelper.instance.getObligation('FASTING');
+    if (prayer != null) {
+      final totalDays = prayer['total_required'] ?? 365;
+      final years = (totalDays / 365).round();
+      _prayerYearsController.text = years > 0 ? years.toString() : '1';
+    }
+    if (fasting != null) {
+      final days = fasting['total_required'] ?? 30;
+      _fastingDaysController.text = days.toString();
+    }
   }
 
   Future<void> _savePlan() async {

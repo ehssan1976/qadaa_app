@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -19,14 +20,16 @@ class NotificationService {
 
     await _notifications.initialize(settings: initSettings);
 
-    final androidImplementation = _notifications
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
-    await androidImplementation?.requestNotificationsPermission();
-    await androidImplementation?.requestExactAlarmsPermission();
+    if (!kIsWeb) {
+      final androidImplementation = _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
+      await androidImplementation?.requestNotificationsPermission();
+      await androidImplementation?.requestExactAlarmsPermission();
 
-    await scheduleAllReminders();
+      await scheduleAllReminders();
+    }
   }
 
   Future<void> scheduleAllReminders() async {
@@ -35,7 +38,7 @@ class NotificationService {
       id: 101,
       title: 'ليلة الجمعة المباركة - دعاء كميل',
       body:
-          'حان وقت قراءة دعاء كميل، نسألكم الدعاء وإهداء ثوابه لروح المرحومة تحرير جابر (أم علي)',
+          'حان وقت قراءة دعاء كميل، نسألكم الدعاء وإهداء ثوابه لروح والدي وروح المرحومة زوجتي تحرير جابر (أم علي)',
       scheduledDate: _nextInstanceOfThursdayNight(),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(

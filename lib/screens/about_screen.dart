@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/app_logo_icon.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -19,20 +20,8 @@ class AboutScreen extends StatelessWidget {
         body: ListView(
           padding: const EdgeInsets.all(20.0),
           children: [
-            Center(
-              child: Container(
-                width: 90,
-                height: 90,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0F766E).withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.mosque,
-                  size: 50,
-                  color: Color(0xFF0F766E),
-                ),
-              ),
+            const Center(
+              child: AppLogoIcon(size: 75),
             ),
             const SizedBox(height: 16),
             const Text(
@@ -68,7 +57,7 @@ class AboutScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                     const Text(
-                      'نُهدي ثواب هذا العمل خالصاً لوجه الله تعالى عن روح المرحومة تحرير جابر (أم علي) رحمها الله وأسكنها فسيح جناته وجعل قبرها روضة من رياض الجنة. نسألكم الدعاء وقراءة سورة الفاتحة لروحها الطاهرة.',
+                      'نُهدي ثواب هذا العمل خالصاً لوجه الله تعالى إلى روح والدي وروح المرحومة زوجتي تحرير جابر (أم علي) رحمهما الله وأسكنهما فسيح جناته وجعل قبرها ورَوْضتهما من رياض الجنة. نسألكم الدعاء وقراءة سورة الفاتحة لأرواحهما الطاهرة.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
@@ -82,7 +71,7 @@ class AboutScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'الإصدار 1.0.1 - تم تصميمه للعمل دون اتصال بالإنترنت وحفظ البيانات محلياً على جهازك.',
+              'الإصدار 1.0.2 - تم تصميمه للعمل دون اتصال بالإنترنت وحفظ البيانات محلياً على جهازك.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
