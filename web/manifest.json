@@ -1,11 +1,11 @@
 {
-    "name": "qadaa_app",
-    "short_name": "qadaa_app",
+    "name": "تطبيق قضاء الفروض والعبادات",
+    "short_name": "قضاء الفروض",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#0F766E",
+    "theme_color": "#0F766E",
+    "description": "تطبيق إسلامي لمتابعة قضاء الصلوات والصيام وسجل الديون والوصية والمسبحة الإلكترونية.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
