@@ -26,7 +26,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
   final _formKey = GlobalKey<FormState>();
 
   // State mode: true = Sign Up, false = Log In
-  bool _isSignUpMode = true;
+  bool _isSignUpMode = false;
 
   // Profile picture state
   String? _profileImagePath;
@@ -166,26 +166,94 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
 
     final isWhatsAppMethod = _tabController.index == 1;
 
-    if (isWhatsAppMethod) {
-      final fullPhone = '$_selectedCountryCode${_phoneController.text.trim()}';
-      final cleanPhone = fullPhone.replaceAll('+', '').replaceAll(' ', '').replaceAll('-', '').trim();
-      final otpCode = (100000 + Random().nextInt(899999)).toString();
-      final textMessage = 'رمز التوثيق الخاص بك لتطبيق قضاء الفروض والعبادات هو: $otpCode';
-      final encodedMsg = Uri.encodeComponent(textMessage);
+    if (_isSignUpMode) {
+      if (isWhatsAppMethod) {
+        final fullPhone = '$_selectedCountryCode${_phoneController.text.trim()}';
+        final cleanPhone = fullPhone.replaceAll('+', '').replaceAll(' ', '').replaceAll('-', '').trim();
+        final otpCode = (100000 + Random().nextInt(899999)).toString();
+        final textMessage = 'رمز التوثيق الخاص بك لتطبيق قضاء الفروض والعبادات هو: $otpCode';
+        final encodedMsg = Uri.encodeComponent(textMessage);
 
-      // Launch WhatsApp immediately on user tap to bypass browser popup blocker
-      final waUrl = Uri.parse('https://api.whatsapp.com/send?phone=$cleanPhone&text=$encodedMsg');
-      try {
-        launchUrl(
-          waUrl,
-          mode: LaunchMode.externalApplication,
-          webOnlyWindowName: '_blank',
+        // Launch WhatsApp immediately on user tap to bypass browser popup blocker
+        final waUrl = Uri.parse('https://api.whatsapp.com/send?phone=$cleanPhone&text=$encodedMsg');
+        try {
+          launchUrl(
+            waUrl,
+            mode: LaunchMode.externalApplication,
+            webOnlyWindowName: '_blank',
+          );
+        } catch (_) {}
+
+        _showWhatsAppOtpBottomSheet(fullPhone, initialOtp: otpCode);
+      } else {
+        // Email registration -> Send OTP verification code to personal email
+        final email = _emailController.text.trim();
+        final otpCode = (100000 + Random().nextInt(899999)).toString();
+        final mailUrl = Uri.parse(
+          'mailto:$email?subject=${Uri.encodeComponent('كود تفعيل حساب قضاء الفروض')}&body=${Uri.encodeComponent('رمز التوثيق لتفعيل حسابك في تطبيق قضاء الفروض والعبادات هو: $otpCode')}',
         );
-      } catch (_) {}
+        try {
+          launchUrl(
+            mailUrl,
+            mode: LaunchMode.externalApplication,
+            webOnlyWindowName: '_blank',
+          );
+        } catch (_) {}
 
-      _showWhatsAppOtpBottomSheet(fullPhone, initialOtp: otpCode);
+        _showEmailOtpBottomSheet(email, initialOtp: otpCode);
+      }
     } else {
-      await _completeAuthentication(authMethod: 'email');
+      // Log In Mode for existing users (تسجيل الدخول لمن يمتلك تسجيل مسبق)
+      await _completeLogin(authMethod: isWhatsAppMethod ? 'whatsapp' : 'email');
+    }
+  }
+
+  Future<void> _completeLogin({required String authMethod}) async {
+    setState(() => _isLoading = true);
+
+    try {
+      final existingProfile = await DatabaseHelper.instance.getUserProfile();
+      final fullPhone = _phoneController.text.isNotEmpty
+          ? '$_selectedCountryCode${_phoneController.text.trim()}'
+          : '';
+      final email = _emailController.text.trim();
+
+      final profileData = {
+        'name': existingProfile?['name'] ?? (email.isNotEmpty ? email.split('@')[0] : 'المستخدم'),
+        'email': email.isNotEmpty ? email : (existingProfile?['email'] ?? ''),
+        'phone': fullPhone.isNotEmpty ? fullPhone : (existingProfile?['phone'] ?? ''),
+        'auth_method': authMethod,
+        'gender': existingProfile?['gender'] ?? 'ذكر',
+        'birth_date': existingProfile?['birth_date'] ?? '',
+        'country': existingProfile?['country'] ?? _selectedCountry,
+        'city': existingProfile?['city'] ?? '',
+        'profile_image': existingProfile?['profile_image'] ?? '',
+        'created_at': existingProfile?['created_at'] ?? DateTime.now().toIso8601String(),
+      };
+
+      await DatabaseHelper.instance.saveUserProfile(profileData);
+
+      if (!mounted) return;
+
+      _showSnackbar('تم تسجيل الدخول بنجاح! أهلاً بعودتك 🎉');
+
+      final prayer = await DatabaseHelper.instance.getObligation('PRAYER');
+      final isFirstTime = (prayer == null || (prayer['total_required'] ?? 0) <= 0);
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => isFirstTime ? const OnboardingScreen() : const HomeScreen(),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        _showSnackbar('حدث خطأ أثناء تسجيل الدخول: $e', isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -238,6 +306,22 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showEmailOtpBottomSheet(String email, {required String initialOtp}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _EmailOtpModal(
+        email: email,
+        initialOtp: initialOtp,
+        onVerified: () {
+          Navigator.pop(context);
+          _completeAuthentication(authMethod: 'email');
+        },
+      ),
+    );
   }
 
   void _showWhatsAppOtpBottomSheet(String fullPhone, {required String initialOtp}) {
@@ -294,8 +378,10 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                         key: _formKey,
                         child: Column(
                           children: [
-                            _buildPersonalDataSection(),
-                            const SizedBox(height: 20),
+                            if (_isSignUpMode) ...[
+                              _buildPersonalDataSection(),
+                              const SizedBox(height: 20),
+                            ],
                             _buildAuthTabsSection(),
                             const SizedBox(height: 24),
                             _buildSubmitButton(),
@@ -394,14 +480,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
         labelColor: Colors.white,
         unselectedLabelColor: Colors.grey.shade700,
         labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        tabs: const [
+        tabs: [
           Tab(
-            icon: Icon(Icons.email_outlined, size: 20),
-            text: 'البريد الإلكتروني',
+            icon: Icon(_isSignUpMode ? Icons.email_outlined : Icons.person_outline, size: 20),
+            text: _isSignUpMode ? 'البريد الإلكتروني' : 'اسم المستخدم / البريد',
           ),
           Tab(
-            icon: Icon(Icons.mark_chat_unread_outlined, size: 20),
-            text: 'الواتساب (الهاتف)',
+            icon: const Icon(Icons.phone_android_outlined, size: 20),
+            text: _isSignUpMode ? 'الواتساب (الهاتف)' : 'رقم الهاتف',
           ),
         ],
         onTap: (index) {
@@ -827,7 +913,9 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               ),
               const SizedBox(width: 8),
               Text(
-                isEmailTab ? 'توثيق البريد الإلكتروني' : 'توثيق رقم الهاتف عبر الواتساب',
+                isEmailTab
+                    ? (_isSignUpMode ? 'توثيق البريد الإلكتروني' : 'تسجيل الدخول بالبريد الإلكتروني')
+                    : (_isSignUpMode ? 'توثيق رقم الهاتف عبر الواتساب' : 'تسجيل الدخول برقم الهاتف'),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -839,14 +927,14 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
           const Divider(height: 20),
 
           if (isEmailTab) ...[
-            // Email Input
+            // Username / Email Input
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
-                labelText: 'البريد الإلكتروني *',
-                hintText: 'example@domain.com',
-                prefixIcon: const Icon(Icons.email_outlined),
+                labelText: _isSignUpMode ? 'البريد الإلكتروني *' : 'اسم المستخدم أو البريد الإلكتروني *',
+                hintText: _isSignUpMode ? 'example@domain.com' : 'أدخل اسم المستخدم أو البريد الإلكتروني',
+                prefixIcon: Icon(_isSignUpMode ? Icons.email_outlined : Icons.person_outline),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true,
                 fillColor: const Color(0xFFF9FAFB),
@@ -854,10 +942,15 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               validator: (val) {
                 if (_tabController.index == 0) {
                   if (val == null || val.trim().isEmpty) {
-                    return 'الرجاء إدخال البريد الإلكتروني';
+                    return _isSignUpMode
+                        ? 'الرجاء إدخال البريد الإلكتروني'
+                        : 'الرجاء إدخال اسم المستخدم أو البريد الإلكتروني';
                   }
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(val.trim())) {
+                  if (_isSignUpMode && !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(val.trim())) {
                     return 'الرجاء إدخال بريد إلكتروني صحيح';
+                  }
+                  if (!_isSignUpMode && val.trim().length < 3) {
+                    return 'اسم المستخدم أو البريد قصير جداً';
                   }
                 }
                 return null;
@@ -893,7 +986,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
               },
             ),
 
-            if (_passwordController.text.isNotEmpty) ...[
+            if (_isSignUpMode && _passwordController.text.isNotEmpty) ...[
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -980,7 +1073,7 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
-                      labelText: 'رقم الهاتف (الواتساب) *',
+                      labelText: 'رقم الهاتف *',
                       hintText: '7701234567',
                       prefixIcon: const Icon(Icons.phone_android_outlined, color: Color(0xFF25D366)),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -1002,27 +1095,58 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFF25D366).withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF25D366).withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF25D366), size: 24),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'سيتم إرسال رمز التحقق OTP المكون من 6 أرقام مباشرة إلى حسابك في الواتساب.',
-                      style: TextStyle(fontSize: 12, color: Color(0xFF064E3B), height: 1.3),
-                    ),
+            const SizedBox(height: 14),
+
+            if (!_isSignUpMode) ...[
+              // Password input for logging in via phone
+              TextFormField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
+                  labelText: 'كلمة السر *',
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
-                ],
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  filled: true,
+                  fillColor: const Color(0xFFF9FAFB),
+                ),
+                validator: (val) {
+                  if (_tabController.index == 1 && !_isSignUpMode) {
+                    if (val == null || val.isEmpty) {
+                      return 'الرجاء إدخال كلمة السر';
+                    }
+                    if (val.length < 6) {
+                      return 'كلمة السر يجب أن تكون من 6 خانات على الأقل';
+                    }
+                  }
+                  return null;
+                },
               ),
-            ),
+            ] else ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF25D366).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF25D366).withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFF25D366), size: 24),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'سيتم إرسال رمز التحقق OTP المكون من 6 أرقام مباشرة إلى حسابك في الواتساب.',
+                        style: TextStyle(fontSize: 12, color: Color(0xFF064E3B), height: 1.3),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ],
       ),
@@ -1049,13 +1173,15 @@ class _AuthScreenState extends State<AuthScreen> with SingleTickerProviderStateM
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    isWhatsApp ? Icons.mark_chat_unread_outlined : Icons.arrow_forward_rounded,
+                    _isSignUpMode
+                        ? (isWhatsApp ? Icons.mark_chat_unread_outlined : Icons.mark_email_read_outlined)
+                        : Icons.login_rounded,
                     size: 22,
                   ),
                   const SizedBox(width: 10),
                   Text(
                     _isSignUpMode
-                        ? (isWhatsApp ? 'إرسال رمز التوثيق بالواتساب' : 'إنشاء الحساب والدخول')
+                        ? (isWhatsApp ? 'إرسال رمز التوثيق بالواتساب' : 'إرسال كود التفعيل للإيميل')
                         : 'تسجيل الدخول',
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
@@ -1377,6 +1503,305 @@ class _WhatsAppOtpModalState extends State<_WhatsAppOtpModal> {
                 label: const Text(
                   'إعادة إرسال كود التحقق عبر الواتساب',
                   style: TextStyle(color: Color(0xFF25D366), fontWeight: FontWeight.bold),
+                ),
+              ),
+
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F766E),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: _isVerifying ? null : _verifyOtpCode,
+                child: _isVerifying
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'تأكيد وتفعيل الحساب',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Modal for Email OTP input & verification timer
+class _EmailOtpModal extends StatefulWidget {
+  final String email;
+  final String? initialOtp;
+  final VoidCallback onVerified;
+
+  const _EmailOtpModal({
+    required this.email,
+    this.initialOtp,
+    required this.onVerified,
+  });
+
+  @override
+  State<_EmailOtpModal> createState() => _EmailOtpModalState();
+}
+
+class _EmailOtpModalState extends State<_EmailOtpModal> {
+  final List<TextEditingController> _otpControllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+
+  int _secondsRemaining = 60;
+  Timer? _timer;
+  bool _isVerifying = false;
+  late String _otpCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _otpCode = widget.initialOtp ?? (100000 + Random().nextInt(899999)).toString();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    for (var c in _otpControllers) {
+      c.dispose();
+    }
+    for (var f in _focusNodes) {
+      f.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _launchEmailAppDirectly() async {
+    final mailUrl = Uri.parse(
+      'mailto:${widget.email}?subject=${Uri.encodeComponent('كود تفعيل حساب قضاء الفروض')}&body=${Uri.encodeComponent('رمز التوثيق لتفعيل حسابك هو: $_otpCode')}',
+    );
+    try {
+      await launchUrl(
+        mailUrl,
+        mode: LaunchMode.externalApplication,
+        webOnlyWindowName: '_blank',
+      );
+    } catch (e) {
+      debugPrint('Error launching Email client: $e');
+    }
+  }
+
+  void _autoFillOtp() {
+    for (int i = 0; i < 6; i++) {
+      if (i < _otpCode.length) {
+        _otpControllers[i].text = _otpCode[i];
+      }
+    }
+    setState(() {});
+    _verifyOtpCode();
+  }
+
+  void _startTimer() {
+    _secondsRemaining = 60;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (_secondsRemaining > 0) {
+        setState(() => _secondsRemaining--);
+      } else {
+        _timer?.cancel();
+      }
+    });
+  }
+
+  void _verifyOtpCode() async {
+    final code = _otpControllers.map((c) => c.text).join();
+    if (code.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('الرجاء إدخال الرمز المكون من 6 أرقام كاملة', textAlign: TextAlign.center),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isVerifying = true);
+    await Future.delayed(const Duration(milliseconds: 700));
+
+    if (mounted) {
+      widget.onVerified();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Container(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const CircleAvatar(
+              radius: 28,
+              backgroundColor: Color(0xFFCCFBF1),
+              child: Icon(Icons.mark_email_read_outlined, color: Color(0xFF0F766E), size: 34),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'تأكيد وتفعيل البريد الإلكتروني',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0F766E)),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'تم إرسال كود التفعيل المكون من 6 أرقام إلى بريدك الشخصي:\n${widget.email}',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.4),
+            ),
+            const SizedBox(height: 14),
+
+            // Open Email app button
+            OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF0F766E),
+                side: const BorderSide(color: Color(0xFF0F766E), width: 1.5),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: _launchEmailAppDirectly,
+              icon: const Icon(Icons.email_outlined, size: 18),
+              label: const Text(
+                'فتح تطبيق البريد الإلكتروني 📧',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // OTP Display & Auto fill helper banner
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF0FDF4),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFF86EFAC)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.verified_user_outlined, color: Color(0xFF16A34A), size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 12, fontFamily: 'Tajawal', color: Color(0xFF166534)),
+                        children: [
+                          const TextSpan(text: 'كود التفعيل: '),
+                          TextSpan(
+                            text: _otpCode,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, letterSpacing: 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  InkWell(
+                    onTap: _autoFillOtp,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF16A34A),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'تعبئة تلقائية ⚡',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
+
+            // OTP 6 digit inputs
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(6, (index) {
+                return SizedBox(
+                  width: 44,
+                  height: 52,
+                  child: TextField(
+                    controller: _otpControllers[index],
+                    focusNode: _focusNodes[index],
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    maxLength: 1,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0F766E)),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      filled: true,
+                      fillColor: const Color(0xFFF3F4F6),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFF0F766E), width: 2),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                    ),
+                    onChanged: (val) {
+                      if (val.isNotEmpty && index < 5) {
+                        _focusNodes[index + 1].requestFocus();
+                      } else if (val.isEmpty && index > 0) {
+                        _focusNodes[index - 1].requestFocus();
+                      }
+                      if (_otpControllers.every((c) => c.text.isNotEmpty)) {
+                        _verifyOtpCode();
+                      }
+                    },
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 18),
+
+            // Timer & Resend
+            if (_secondsRemaining > 0)
+              Text(
+                'إعادة طلب الرمز خلال: $_secondsRemaining ثانية',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+              )
+            else
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _otpCode = (100000 + Random().nextInt(899999)).toString();
+                  });
+                  _startTimer();
+                  _launchEmailAppDirectly();
+                },
+                icon: const Icon(Icons.refresh, color: Color(0xFF0F766E)),
+                label: const Text(
+                  'إعادة إرسال كود التفعيل إلى البريد',
+                  style: TextStyle(color: Color(0xFF0F766E), fontWeight: FontWeight.bold),
                 ),
               ),
 

@@ -41,22 +41,22 @@ class _DevotionsScreenState extends State<DevotionsScreen>
 
 يَا رَبِّ يَا رَبِّ يَا رَبِّ، أَسْأَلُكَ بِحَقِّكَ وَقُدْسِكَ وَأَعْظَمِ صِفَاتِكَ وَأَسْمَائِكَ، أَنْ تَجْعَلَ أَوْقَاتِي مِنَ اللَّيْلِ وَالنَّهَارِ بِذِكْرِكَ مَعْمُورَةً، وَبِخِدْمَتِكَ مَوْصُولَةً، وَأَعْمَالِي عِنْدَكَ مَقْبُولَةً...
 
-(يُستحب قراءته ليلة الجمعة وإهداء ثوابه لروح والدي وروح المرحومة زوجتي تحرير جابر أم علي وأموات المؤمنين جميعاً).''',
+(يُستحب قراءته ليلة الجمعة وإهداء ثوابه لجميع أموات المؤمنين والمؤمنات).''',
     },
     {
-      'title': 'دعاء لروح والدي وللمرحومة زوجتي تحرير جابر (أم علي)',
+      'title': 'دعاء للوالدين والأموات',
       'body':
-          'اللهم اغفر لوالدي ولزوجتي تحرير جابر، وارحمهما وعافهما واعفُ عنهما، وأكرم نزلهما ووسّع مدخلهما، واغسلهما بالماء والثلج والبرد، ونقّهما من الذنوب والخطايا كما ينقّى الثوب الأبيض من الدنس، وجازهما بالإحسان إحساناً وبالسيئات غفراناً.',
+          'اللهم اغفر لوالدينا ولجميع أموات المؤمنين والمؤمنات، وارحمهم وعافهم واعفُ عنهم، وأكرم نزلهم ووسّع مدخلهم، واغسلهم بالماء والثلج والبرد، ونقّهم من الذنوب والخطايا كما ينقّى الثوب الأبيض من الدنس، وجازهم بالإحسان إحساناً وبالسيئات غفراناً.',
     },
     {
       'title': 'دعاء النور والفسحة في القبر',
       'body':
-          'اللهم آنس وحشتهما، وارحم غربتهما، واجعل قبرهما روضة من رياض الجنة ولا تجعله حفرة من حفر النار، وافسح لهما في قبرهما مدّ بصرهما، وأنزل على قبرهما الضياء والنور والفسحة والسرور.',
+          'اللهم آنس وحشتهم، وارحم غربتهم، واجعل قبورهم روضة من رياض الجنة ولا تجعلها حفرة من حفر النار، وافسح لهم في قبورهم مدّ بصرهم، وأنزل على قبورهم الضياء والنور والفسحة والسرور.',
     },
     {
       'title': 'إهداء ثواب الطاعات والأذكار',
       'body':
-          'اللهم إني أحتسب ثواب وأجر هذه الأذكار والدعوات صدقة جارية ونوراً واصلاً لروح والدي وروح المرحومة زوجتي تحرير جابر (أم علي)، فتقبله بقبولك الحسن يا رب العالمين.',
+          'اللهم إني أحتسب ثواب وأجر هذه الأذكار والدعوات صدقة جارية ونوراً واصلاً لأرواح والدينا وأمواتنا وأموات المؤمنين والمؤمنات، فتقبله بقبولك الحسن يا رب العالمين.',
     },
   ];
 
@@ -134,7 +134,7 @@ class _DevotionsScreenState extends State<DevotionsScreen>
         backgroundColor: const Color(0xFFF7F9FC),
         appBar: AppBar(
           title: const Text(
-            'الأعمال العبادية والأذكار',
+            'المسبحة والأدعية',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
@@ -149,7 +149,7 @@ class _DevotionsScreenState extends State<DevotionsScreen>
             tabs: const [
               Tab(
                 icon: Icon(Icons.touch_app_outlined),
-                text: 'المسبحة والأذكار',
+                text: 'المسبحة',
               ),
               Tab(
                 icon: Icon(Icons.menu_book_outlined),
@@ -240,7 +240,7 @@ class _DevotionsScreenState extends State<DevotionsScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'الهدف لكل دؤرة:',
+                    'الهدف لكل دورة:',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 13,
@@ -385,20 +385,46 @@ class _DevotionsScreenState extends State<DevotionsScreen>
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // Counter Badge
+                        // Counter Badge (Vivid, Colored Second Counter Field)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: count > 0 ? const Color(0xFF0F766E) : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '$count / $_target',
-                            style: TextStyle(
-                              color: count > 0 ? Colors.white : const Color(0xFF64748B),
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
+                            gradient: LinearGradient(
+                              colors: count > 0
+                                  ? const [Color(0xFFD97706), Color(0xFFF59E0B)]
+                                  : const [Color(0xFF0F766E), Color(0xFF14B8A6)],
+                              begin: Alignment.topRight,
+                              end: Alignment.bottomLeft,
                             ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (count > 0 ? const Color(0xFFD97706) : const Color(0xFF0F766E)).withValues(alpha: 0.35),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '$count',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              Text(
+                                ' / $_target',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],

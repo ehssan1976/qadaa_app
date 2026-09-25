@@ -262,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
             NavigationDestination(
               icon: Icon(Icons.touch_app_outlined),
               selectedIcon: Icon(Icons.touch_app, color: Color(0xFF0F766E)),
-              label: 'المسبحة والأذكار',
+              label: 'المسبحة',
             ),
           ],
         ),

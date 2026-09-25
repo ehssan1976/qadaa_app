@@ -38,7 +38,7 @@ class NotificationService {
       id: 101,
       title: 'ليلة الجمعة المباركة - دعاء كميل',
       body:
-          'حان وقت قراءة دعاء كميل، نسألكم الدعاء وإهداء ثوابه لروح والدي وروح المرحومة زوجتي تحرير جابر (أم علي)',
+          'ليلة الجمعة مباركة، حان وقت قراءة دعاء كميل وتلاوة الأذكار وإهداء ثوابها لأموات المؤمنين والمؤمنات',
       scheduledDate: _nextInstanceOfThursdayNight(),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
