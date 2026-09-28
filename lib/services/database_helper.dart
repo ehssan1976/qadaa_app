@@ -865,16 +865,8 @@ class DatabaseHelper {
   }
 
   Future<bool> isLoggedIn() async {
-    final user = AuthService.instance.currentUser;
-    if (user == null) {
-      return false;
-    }
-    try {
-      await user.reload();
-    } catch (_) {}
-
-    final refreshedUser = AuthService.instance.currentUser;
-    if (refreshedUser == null || !refreshedUser.emailVerified) {
+    final isVerified = await AuthService.instance.checkIsEmailVerified();
+    if (!isVerified) {
       return false;
     }
 
