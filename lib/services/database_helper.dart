@@ -867,6 +867,7 @@ class DatabaseHelper {
   Future<bool> isLoggedIn() async {
     final isVerified = await AuthService.instance.checkIsEmailVerified();
     if (!isVerified) {
+      await logoutUserProfile();
       return false;
     }
 
