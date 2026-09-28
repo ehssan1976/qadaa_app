@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'auth_service.dart';
+
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -785,6 +788,12 @@ class DatabaseHelper {
       'created_at': user['created_at'] ?? DateTime.now().toIso8601String(),
     };
 
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_profile_json', jsonEncode(data));
+      await prefs.setBool('is_user_logged_in', true);
+    } catch (_) {}
+
     if (kIsWeb) {
       _webUserProfile = Map<String, dynamic>.from(data);
       _webUserProfile!['id'] = 1;
@@ -801,8 +810,17 @@ class DatabaseHelper {
       if (_webUserProfile != null) {
         _webUserProfile!['profile_image'] = imagePath;
       }
-      return;
     }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonStr = prefs.getString('user_profile_json');
+      if (jsonStr != null && jsonStr.isNotEmpty) {
+        final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+        map['profile_image'] = imagePath;
+        await prefs.setString('user_profile_json', jsonEncode(map));
+      }
+    } catch (_) {}
+
     final db = await instance.database;
     if (db == null) return;
     await db.update('user_profile', {'profile_image': imagePath}, where: 'is_logged_in = 1');
@@ -813,14 +831,31 @@ class DatabaseHelper {
       if (_webUserProfile != null && _webUserProfile!['is_logged_in'] == 1) {
         return Map<String, dynamic>.from(_webUserProfile!);
       }
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final jsonStr = prefs.getString('user_profile_json');
+        final isLogged = prefs.getBool('is_user_logged_in');
+        if (jsonStr != null && jsonStr.isNotEmpty && isLogged != false) {
+          final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+          _webUserProfile = map;
+          return Map<String, dynamic>.from(_webUserProfile!);
+        }
+      } catch (_) {}
       return null;
     }
     try {
       final db = await instance.database;
-      if (db == null) return null;
-      final res = await db.query('user_profile', where: 'is_logged_in = 1', limit: 1);
-      if (res.isNotEmpty) {
-        return res.first;
+      if (db != null) {
+        final res = await db.query('user_profile', where: 'is_logged_in = 1', limit: 1);
+        if (res.isNotEmpty) {
+          return res.first;
+        }
+      }
+      final prefs = await SharedPreferences.getInstance();
+      final jsonStr = prefs.getString('user_profile_json');
+      final isLogged = prefs.getBool('is_user_logged_in');
+      if (jsonStr != null && jsonStr.isNotEmpty && isLogged != false) {
+        return jsonDecode(jsonStr) as Map<String, dynamic>;
       }
       return null;
     } catch (e) {
@@ -830,11 +865,36 @@ class DatabaseHelper {
   }
 
   Future<bool> isLoggedIn() async {
+    final user = AuthService.instance.currentUser;
+    if (user == null) {
+      return false;
+    }
+    try {
+      await user.reload();
+    } catch (_) {}
+
+    final refreshedUser = AuthService.instance.currentUser;
+    if (refreshedUser == null || !refreshedUser.emailVerified) {
+      return false;
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isLogged = prefs.getBool('is_user_logged_in');
+      if (isLogged == true) return true;
+    } catch (_) {}
+
     final profile = await getUserProfile();
     return profile != null;
   }
 
   Future<void> logoutUserProfile() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_profile_json');
+      await prefs.setBool('is_user_logged_in', false);
+    } catch (_) {}
+
     if (kIsWeb) {
       _webUserProfile = null;
       return;
@@ -843,6 +903,7 @@ class DatabaseHelper {
     if (db == null) return;
     await db.delete('user_profile');
   }
+
 
   // ================= KHUMS OPERATIONS =================
   Future<Map<String, dynamic>?> getKhumsInfo() async {

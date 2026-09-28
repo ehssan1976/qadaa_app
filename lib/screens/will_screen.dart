@@ -585,21 +585,26 @@ class _WillScreenState extends State<WillScreen> with SingleTickerProviderStateM
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'إجمالي الممتلكات المسجلة',
-                        style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${_willAssets.length} ممتلكات وعقارات',
-                        style: const TextStyle(color: Colors.amberAccent, fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'إجمالي الممتلكات المسجلة',
+                          style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${_willAssets.length} ممتلكات وعقارات',
+                          style: const TextStyle(color: Colors.amberAccent, fontSize: 20, fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   OutlinedButton.icon(
                     onPressed: _showWillDocumentDialog,
                     icon: const Icon(Icons.assignment_outlined, color: Colors.amberAccent, size: 16),
@@ -607,10 +612,12 @@ class _WillScreenState extends State<WillScreen> with SingleTickerProviderStateM
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.amberAccent),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     ),
                   ),
                 ],
               ),
+
               const SizedBox(height: 12),
               const Text(
                 'تثبيت الأموال والذهب والعقارات والسيارات لضمان حفظ حقوقك وحقوق الورثة شرعاً',

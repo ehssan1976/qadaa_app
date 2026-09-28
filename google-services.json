@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "35490038050",
+    "project_id": "qadaa-app-ea768",
+    "storage_bucket": "qadaa-app-ea768.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:35490038050:android:54fca5c17a0e67f99da57b",
+        "android_client_info": {
+          "package_name": "com.example.qadaa_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfyw_LdBBhImg2cqa1qHr4qaRopqcBzxY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

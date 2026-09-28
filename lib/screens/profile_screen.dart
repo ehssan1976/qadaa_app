@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import '../services/auth_service.dart';
 import '../services/database_helper.dart';
 import '../widgets/user_profile_avatar.dart';
 import 'auth_screen.dart';
@@ -44,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('تسجيل الخروج'),
-          content: const Text('هل أنت أربك من تسجيل الخروج من الحساب؟'),
+          content: const Text('هل أنت تأكد من تسجيل الخروج من الحساب؟'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -64,6 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (confirm == true) {
+      await AuthService.instance.signOut();
       await DatabaseHelper.instance.logoutUserProfile();
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
