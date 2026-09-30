@@ -293,6 +293,45 @@ class AuthService {
     }
   }
 
+  /// Sign in with Google account (native popup on Web, provider on mobile)
+  Future<UserCredential> signInWithGoogle() async {
+    final a = _auth;
+    if (a == null) {
+      throw 'خدمة المصادقة (FirebaseAuth) غير متوفرة.';
+    }
+
+    try {
+      final googleProvider = GoogleAuthProvider();
+      googleProvider.addScope('email');
+      googleProvider.addScope('profile');
+      googleProvider.setCustomParameters({'prompt': 'select_account'});
+
+      UserCredential userCredential;
+      if (kIsWeb) {
+        userCredential = await a.signInWithPopup(googleProvider);
+      } else {
+        userCredential = await a.signInWithProvider(googleProvider);
+      }
+
+      final user = userCredential.user;
+      if (user != null) {
+        _currentEmail = user.email;
+        _localId = user.uid;
+        _isRestVerified = true;
+        final token = await user.getIdToken();
+        await _saveTokens(token, user.email, user.uid);
+      }
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      debugPrint('Google Sign In error: ${e.code} - ${e.message}');
+      throw _parseAuthException(e);
+    } catch (e) {
+      debugPrint('Google Sign In general error: $e');
+      if (e is String) rethrow;
+      throw 'حدث خطأ أثناء تسجيل الدخول بحساب Google: $e';
+    }
+  }
+
   /// Sign out
   Future<void> signOut() async {
     try {
@@ -414,8 +453,16 @@ class AuthService {
         return 'بيانات البريد الإلكتروني أو كلمة السر غير صحيحة.';
       case 'too-many-requests':
         return 'تم تجاوز عدد المحاولات المسموح بها مؤقتاً. يرجى المحاولة لاحقاً.';
-      case 'network-request-failed':
-        return 'فشل الاتصال بالشبكة. يرجى التحقق من الاتصال بالإنترنت.';
+      case 'popup-closed-by-user':
+        return 'تم إغلاق نافذة تسجيل الدخول بـ Google قبل إتمام العملية.';
+      case 'cancelled':
+        return 'تم إلغاء عملية تسجيل الدخول بحساب Google.';
+      case 'popup-blocked':
+        return 'قام المتصفح بحظر نافذة تسجيل الدخول المنبثقة. يرجى السماح بالنوافذ المنبثقة (Popups) لهذا الموقع.';
+      case 'unauthorized-domain':
+        return 'هذا النطاق غير مصرح به في Firebase. يرجى إضافة نطاق الموقع (مثل Netlify) إلى قائمة Authorized Domains في لوحة تحكم Firebase Authentication.';
+      case 'account-exists-with-different-credential':
+        return 'يوجد حساب مسجل بالفعل بنفس البريد الإلكتروني ولكن بطريقة تسجيل دخول مختلفة.';
       default:
         return e.message ?? 'حدث خطأ في عملية التوثيق (${e.code}).';
     }

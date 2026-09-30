@@ -271,6 +271,62 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final credential = await AuthService.instance.signInWithGoogle();
+      final user = credential.user;
+      if (user == null) {
+        throw 'تعذر الحصول على بيانات المستخدم من حساب Google.';
+      }
+
+      final email = user.email ?? '';
+      final displayName = user.displayName ?? (email.isNotEmpty ? email.split('@')[0] : 'المستخدم');
+      final photoUrl = user.photoURL ?? '';
+
+      final existingProfile = await DatabaseHelper.instance.getUserProfile();
+
+      final profileData = {
+        'name': displayName.isNotEmpty ? displayName : (existingProfile?['name'] ?? 'المستخدم'),
+        'email': email,
+        'phone': existingProfile?['phone'] ?? '',
+        'auth_method': 'google',
+        'gender': existingProfile?['gender'] ?? _selectedGender,
+        'birth_date': existingProfile?['birth_date'] ?? '',
+        'country': existingProfile?['country'] ?? _selectedCountry,
+        'city': existingProfile?['city'] ?? '',
+        'profile_image': photoUrl.isNotEmpty ? photoUrl : (existingProfile?['profile_image'] ?? ''),
+        'created_at': existingProfile?['created_at'] ?? DateTime.now().toIso8601String(),
+        'is_logged_in': 1,
+      };
+
+      await DatabaseHelper.instance.saveUserProfile(profileData);
+
+      if (!mounted) return;
+
+      _showSnackbar('تم تسجيل الدخول بنجاح بحساب Google! أهلاً بك 🎉');
+
+      final prayer = await DatabaseHelper.instance.getObligation('PRAYER');
+      final isFirstTime = (prayer == null || (prayer['total_required'] ?? 0) <= 0);
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => isFirstTime ? const OnboardingScreen() : const HomeScreen(),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        _showSnackbar(e.toString(), isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   void _showForgotPasswordDialog() {
     final emailController = TextEditingController(text: _emailController.text.trim());
     bool isSending = false;
@@ -606,6 +662,10 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: Column(
                     children: [
                       _buildAuthModeCard(),
+                      const SizedBox(height: 18),
+                      _buildGoogleSignInButton(),
+                      const SizedBox(height: 18),
+                      _buildDividerWithText(_isSignUpMode ? 'أو التسجيل عبر البريد الإلكتروني' : 'أو الدخول عبر البريد الإلكتروني'),
                       const SizedBox(height: 18),
                       AutofillGroup(
                         child: Form(
@@ -1402,4 +1462,139 @@ class _AuthScreenState extends State<AuthScreen> {
       ),
     );
   }
+
+  Widget _buildGoogleSignInButton() {
+    return Container(
+      width: double.infinity,
+      height: 54,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade300, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: _isLoading ? null : _signInWithGoogle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildGoogleLogo(),
+                const SizedBox(width: 12),
+                Text(
+                  _isSignUpMode ? 'التسجيل السريع بحساب Google' : 'تسجيل الدخول بحساب Google',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1F2937),
+                    fontFamily: 'Tajawal',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDividerWithText(String text) {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade500,
+              fontFamily: 'Tajawal',
+            ),
+          ),
+        ),
+        Expanded(child: Divider(color: Colors.grey.shade300, thickness: 1)),
+      ],
+    );
+  }
+
+  Widget _buildGoogleLogo() {
+    return const SizedBox(
+      width: 24,
+      height: 24,
+      child: CustomPaint(
+        painter: _GoogleLogoPainter(),
+      ),
+    );
+  }
+}
+
+class _GoogleLogoPainter extends CustomPainter {
+  const _GoogleLogoPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double w = size.width;
+    final double h = size.height;
+    final double cx = w / 2;
+    final double cy = h / 2;
+    final double stroke = w * 0.22;
+    final Rect rect = Rect.fromCenter(center: Offset(cx, cy), width: w - stroke, height: h - stroke);
+
+    final Paint redPaint = Paint()
+      ..color = const Color(0xFFEA4335)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.butt;
+
+    final Paint yellowPaint = Paint()
+      ..color = const Color(0xFFFBBC05)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.butt;
+
+    final Paint greenPaint = Paint()
+      ..color = const Color(0xFF34A853)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.butt;
+
+    final Paint bluePaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.butt;
+
+    const double pi = 3.1415926535897932;
+    // Blue arc (top-right to bottom-right)
+    canvas.drawArc(rect, -pi / 6, 2 * pi / 6, false, bluePaint);
+    // Green arc (bottom-right to bottom-left)
+    canvas.drawArc(rect, pi / 6, 2 * pi / 3, false, greenPaint);
+    // Yellow arc (bottom-left to top-left)
+    canvas.drawArc(rect, 5 * pi / 6, 2 * pi / 3, false, yellowPaint);
+    // Red arc (top-left to top-right)
+    canvas.drawArc(rect, 3 * pi / 2, 2 * pi / 3, false, redPaint);
+
+    // Crossbar
+    final Paint barPaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..style = PaintingStyle.fill;
+    final double barHeight = stroke;
+    final Rect barRect = Rect.fromLTWH(cx - w * 0.05, cy - barHeight / 2, w * 0.55, barHeight);
+    canvas.drawRect(barRect, barPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

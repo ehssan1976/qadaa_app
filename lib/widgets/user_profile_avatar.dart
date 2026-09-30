@@ -108,6 +108,17 @@ class UserProfileAvatar extends StatelessWidget {
       );
     }
 
+    // Network image URL (e.g. Google Account profile picture)
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      return Image.network(
+        path,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Center(
+          child: Text(defaultEmoji, style: TextStyle(fontSize: radius * 0.95)),
+        ),
+      );
+    }
+
     // Base64 image string (Web or inline data)
     if (path.startsWith('data:image') || path.startsWith('base64:')) {
       try {
