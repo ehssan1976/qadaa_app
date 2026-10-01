@@ -12,7 +12,20 @@
           "package_name": "com.example.qadaa_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "35490038050-i1phhgo0e6u70p5g0biqk4poo5kj80jf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.qadaa_app",
+            "certificate_hash": "89db5c25a47eaf5247b10c740bbd4b5c22817a7f"
+          }
+        },
+        {
+          "client_id": "35490038050-a05va2gkf6l74djjbshehv9ajo84tuur.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDfyw_LdBBhImg2cqa1qHr4qaRopqcBzxY"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "35490038050-a05va2gkf6l74djjbshehv9ajo84tuur.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
