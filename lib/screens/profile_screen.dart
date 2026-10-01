@@ -317,7 +317,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final method = _userProfile!['auth_method'] ?? 'email';
     final profileImage = _userProfile!['profile_image'];
 
-    final isWhatsApp = method == 'whatsapp';
+    final isGoogle = method == 'google';
 
     return Container(
       width: double.infinity,
@@ -351,27 +351,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: isWhatsApp ? const Color(0xFFDCFCE7) : const Color(0xFFE0F2FE),
+              color: isGoogle ? const Color(0xFFFEF3C7) : const Color(0xFFE0F2FE),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isWhatsApp ? const Color(0xFF25D366) : const Color(0xFF0284C7),
+                color: isGoogle ? const Color(0xFFD97706) : const Color(0xFF0284C7),
               ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  isWhatsApp ? Icons.chat_bubble_outline : Icons.email,
-                  size: 16,
-                  color: isWhatsApp ? const Color(0xFF15803D) : const Color(0xFF0369A1),
+                  isGoogle ? Icons.g_mobiledata_rounded : Icons.email_outlined,
+                  size: 18,
+                  color: isGoogle ? const Color(0xFFB45309) : const Color(0xFF0369A1),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 4),
                 Text(
-                  isWhatsApp ? 'موثق عبر الواتساب' : 'موثق عبر البريد الإلكتروني',
+                  isGoogle ? 'موثق بحساب Google' : 'موثق عبر البريد الإلكتروني',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: isWhatsApp ? const Color(0xFF15803D) : const Color(0xFF0369A1),
+                    color: isGoogle ? const Color(0xFFB45309) : const Color(0xFF0369A1),
                   ),
                 ),
               ],

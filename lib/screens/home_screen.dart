@@ -406,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final authMethod = _userProfile!['auth_method'] ?? 'email';
       final gender = _userProfile!['gender'] ?? 'ذكر';
       final profileImage = _userProfile!['profile_image'];
-      final isWhatsApp = authMethod == 'whatsapp';
+      final isGoogle = authMethod == 'google';
 
       return InkWell(
         onTap: () async {
@@ -452,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Text(
-                      isWhatsApp ? 'موثق عبر الواتساب' : 'موثق عبر البريد الإلكتروني',
+                      isGoogle ? 'موثق بحساب Google' : 'موثق عبر البريد الإلكتروني',
                       style: TextStyle(
                         fontSize: 10.5,
                         color: Colors.white.withValues(alpha: 0.85),
