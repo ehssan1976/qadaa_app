@@ -487,6 +487,7 @@ class _KhumsScreenState extends State<KhumsScreen> {
                   onPressed: () => PrintAndShareHelper.printDocument(
                     title: 'تقرير المحاسبة الخمسية ورأس المال',
                     content: reportText,
+                    context: context,
                   ),
                   icon: const Icon(Icons.print, size: 16),
                   label: const Text('طباعة التقرير'),

@@ -462,6 +462,7 @@ class _WillScreenState extends State<WillScreen> with SingleTickerProviderStateM
                   onPressed: () => PrintAndShareHelper.printDocument(
                     title: 'سند الوصية الشرعية وثبت التركة',
                     content: docText,
+                    context: context,
                   ),
                   icon: const Icon(Icons.print, size: 16),
                   label: const Text('طباعة السند'),

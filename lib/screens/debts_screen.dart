@@ -484,6 +484,7 @@ class _DebtsScreenState extends State<DebtsScreen> {
                   onPressed: () => PrintAndShareHelper.printDocument(
                     title: 'بيان الديون والحقوق المالية للورثة',
                     content: statementText,
+                    context: context,
                   ),
                   icon: const Icon(Icons.print, size: 16),
                   label: const Text('طباعة البيان'),
